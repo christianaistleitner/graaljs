@@ -304,7 +304,7 @@ public class PropertySetNode extends PropertyCacheNode<PropertySetNode.SetCacheN
     public static final class ObjectPropertySetNode extends LinkedPropertySetNode {
         private final Property property;
 
-        public ObjectPropertySetNode(Property property, AbstractShapeCheckNode shapeCheck) {
+        public ObjectPropertySetNode(Property property, ReceiverCheckNode shapeCheck) {
             super(shapeCheck);
             this.property = property;
             assert JSProperty.isData(property) && JSProperty.isWritable(property) && !JSProperty.isProxy(property) && !property.getLocation().isFinal();
@@ -360,7 +360,7 @@ public class PropertySetNode extends PropertyCacheNode<PropertySetNode.SetCacheN
         private final Property property;
         private final IntLocation location;
 
-        public IntPropertySetNode(Property property, AbstractShapeCheckNode shapeCheck) {
+        public IntPropertySetNode(Property property, ReceiverCheckNode shapeCheck) {
             super(shapeCheck);
             this.property = property;
             this.location = (IntLocation) property.getLocation();
@@ -407,7 +407,7 @@ public class PropertySetNode extends PropertyCacheNode<PropertySetNode.SetCacheN
         private static final int DOUBLE = 1 << 1;
         private static final int OTHER = 1 << 2;
 
-        public DoublePropertySetNode(Property property, AbstractShapeCheckNode shapeCheck) {
+        public DoublePropertySetNode(Property property, ReceiverCheckNode shapeCheck) {
             super(shapeCheck);
             this.location = (DoubleLocation) property.getLocation();
             assert JSProperty.isData(property) && JSProperty.isWritable(property) && !property.getLocation().isFinal();
@@ -477,7 +477,7 @@ public class PropertySetNode extends PropertyCacheNode<PropertySetNode.SetCacheN
         private final Property property;
         private final BooleanLocation location;
 
-        public BooleanPropertySetNode(Property property, AbstractShapeCheckNode shapeCheck) {
+        public BooleanPropertySetNode(Property property, ReceiverCheckNode shapeCheck) {
             super(shapeCheck);
             this.property = property;
             this.location = (BooleanLocation) property.getLocation();
@@ -1099,8 +1099,10 @@ public class PropertySetNode extends PropertyCacheNode<PropertySetNode.SetCacheN
                 try {
                     interop.writeHashEntry(truffleObject, stringKey, value);
                 } catch (UnknownKeyException | UnsupportedMessageException | UnsupportedTypeException e) {
-                    errorBranch.enter();
-                    throw Errors.createTypeErrorInteropException(truffleObject, e, "writeHashEntry", this);
+                    if (root.isStrict) {
+                        errorBranch.enter();
+                        throw Errors.createTypeErrorInteropException(truffleObject, e, "writeHashEntry", this);
+                    }
                 }
             }
 
@@ -1109,27 +1111,34 @@ public class PropertySetNode extends PropertyCacheNode<PropertySetNode.SetCacheN
                     return true;
                 }
             }
-            if (optimistic) {
+            // strict mode always throws if the member is not writable
+            if (root.isStrict || optimistic) {
                 try {
                     interop.writeMember(truffleObject, stringKey, value);
-                } catch (UnknownIdentifierException e) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    optimistic = false;
-                } catch (UnsupportedTypeException | UnsupportedMessageException e) {
-                    errorBranch.enter();
-                    throw Errors.createTypeErrorInteropException(truffleObject, e, "writeMember", stringKey, this);
+                    return true;
+                } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
+                    if (root.isStrict) {
+                        errorBranch.enter();
+                        throw Errors.createTypeErrorInteropException(truffleObject, e, "writeMember", stringKey, this);
+                    } else if (e instanceof UnknownIdentifierException) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        optimistic = false;
+                    }
+                    return false;
                 }
             } else {
+                assert !root.isStrict;
                 if (interop.isMemberWritable(truffleObject, stringKey)) {
                     try {
                         interop.writeMember(truffleObject, stringKey, value);
+                        return true;
                     } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
-                        errorBranch.enter();
-                        throw Errors.createTypeErrorInteropException(truffleObject, e, "writeMember", stringKey, this);
+                        return false;
                     }
+                } else {
+                    return false;
                 }
             }
-            return true;
         }
 
         // in nashorn-compat mode, `javaObj.xyz = a` can mean `javaObj.setXyz(a)`.
@@ -1404,5 +1413,31 @@ public class PropertySetNode extends PropertyCacheNode<PropertySetNode.SetCacheN
     @Override
     protected void setPropertyAssumptionCheckEnabled(boolean value) {
         this.propertyAssumptionCheckEnabled = value;
+    }
+
+    @Override
+    protected boolean canCombineShapeCheck(Shape parentShape, Shape cacheShape, Object thisObj, int depth, Object value, Property property) {
+        assert shapesHaveCommonLayoutForKey(parentShape, cacheShape);
+        if (JSDynamicObject.isJSDynamicObject(thisObj) && JSProperty.isData(property)) {
+            if (JSProperty.isWritable(property) && depth == 0 && !superProperty && !JSProperty.isProxy(property)) {
+                return !property.getLocation().isDeclared() && property.getLocation().canSet(value);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected SetCacheNode createCombinedIcPropertyNode(Shape parentShape, Shape cacheShape, Object thisObj, int depth, Object value, Property property) {
+        PropertyGetNode.CombinedShapeCheckNode shapeCheck = new PropertyGetNode.CombinedShapeCheckNode(parentShape, cacheShape);
+
+        if (property.getLocation() instanceof IntLocation) {
+            return new IntPropertySetNode(property, shapeCheck);
+        } else if (property.getLocation() instanceof DoubleLocation) {
+            return new DoublePropertySetNode(property, shapeCheck);
+        } else if (property.getLocation() instanceof BooleanLocation) {
+            return new BooleanPropertySetNode(property, shapeCheck);
+        } else {
+            return new ObjectPropertySetNode(property, shapeCheck);
+        }
     }
 }

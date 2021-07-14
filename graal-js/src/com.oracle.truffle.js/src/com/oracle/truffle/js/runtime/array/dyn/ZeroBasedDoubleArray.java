@@ -109,11 +109,6 @@ public final class ZeroBasedDoubleArray extends AbstractDoubleArray {
     }
 
     @Override
-    public Object[] toArray(DynamicObject object) {
-        return toArrayZeroBased(object);
-    }
-
-    @Override
     public ZeroBasedObjectArray toObject(DynamicObject object, long index, Object value) {
         double[] array = getArray(object);
         int length = lengthInt(object);
@@ -164,7 +159,10 @@ public final class ZeroBasedDoubleArray extends AbstractDoubleArray {
     public ScriptArray removeRangeImpl(DynamicObject object, long start, long end) {
         double[] array = getArray(object);
         int usedLength = getUsedLength(object);
-        System.arraycopy(array, (int) end, array, (int) start, Math.max(0, (int) (usedLength - end)));
+        long moveLength = usedLength - end;
+        if (moveLength > 0) {
+            System.arraycopy(array, (int) end, array, (int) start, (int) moveLength);
+        }
         return this;
     }
 

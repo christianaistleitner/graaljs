@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -190,6 +190,7 @@ public class Test262Runnable extends TestRunnable {
                     "destructuring-assignment",
                     "destructuring-binding",
                     "dynamic-import",
+                    "error-cause",
                     "export-star-as-namespace-from-module",
                     "for-in-order",
                     "for-of",
@@ -227,9 +228,16 @@ public class Test262Runnable extends TestRunnable {
                     "Intl.DateTimeFormat-dayPeriod",
                     "Intl.DateTimeFormat-formatRange",
                     "Intl.DateTimeFormat-fractionalSecondDigits",
+                    "Intl.Locale-info",
                     "IsHTMLDDA",
+                    "Object.hasOwn",
+                    "Temporal",
                     "align-detached-buffer-semantics-with-web-reality",
                     "arbitrary-module-namespace-names",
+                    "class-fields-private-in",
+                    "import-assertions",
+                    "json-modules",
+                    "resizable-arraybuffer",
                     "tail-call-optimization",
     }));
     private static final Set<String> ES2022_FEATURES = new HashSet<>(Arrays.asList(new String[]{
@@ -267,6 +275,9 @@ public class Test262Runnable extends TestRunnable {
         Map<String, String> extraOptions = new HashMap<>(4);
         if (flags.contains(CAN_BLOCK_IS_FALSE_FLAG)) {
             extraOptions.put(JSContextOptions.AGENT_CAN_BLOCK_NAME, "false");
+        }
+        if (features.contains("error-cause")) {
+            extraOptions.put(JSContextOptions.ERROR_CAUSE_NAME, "true");
         }
 
         assert !asyncTest || !negative || negativeExpectedMessage.equals("SyntaxError") : "unsupported async negative test (does not expect an early SyntaxError): " + testFile.getFilePath();

@@ -134,6 +134,10 @@
     "status" : "FAIL",
     "comment" : "new failures 2020-11-23"
   }, {
+    "filePath" : "built-ins/Function/internals/Call/class-ctor-realm.js",
+    "status" : "FAIL",
+    "comment" : "new failures 2021-05-27"
+  }, {
     "filePath" : "built-ins/Function/prototype/bind/instance-length-tointeger.js",
     "status" : "FAIL",
     "comment" : "new failures 2020-11-23"
@@ -1856,9 +1860,17 @@
     "status" : "FAIL",
     "comment" : "new failures 2020-11-23"
   }, {
+    "filePath" : "intl402/DateTimeFormat/constructor-options-style-conflict.js",
+    "status" : "FAIL",
+    "comment" : "new failures 2021-07-08"
+  }, {
     "filePath" : "intl402/DateTimeFormat/prototype/resolvedOptions/hourCycle-default.js",
     "status" : "FAIL",
     "comment" : "new failures after 2020-03 update"
+  }, {
+    "filePath" : "intl402/ListFormat/constructor/constructor/options-getoptionsobject.js",
+    "status" : "FAIL",
+    "comment" : "new failures 2021-05-27"
   }, {
     "filePath" : "intl402/NumberFormat/dft-currency-mnfd-range-check-mxfd.js",
     "status" : "FAIL",
@@ -1956,6 +1968,10 @@
     "status" : "FAIL",
     "comment" : "GR-27664"
   }, {
+    "filePath" : "intl402/supportedLocalesOf-unicode-extensions-ignored.js",
+    "status" : "FAIL",
+    "comment" : "new failures 2021-07-08"
+  }, {
     "filePath" : "language/eval-code/direct/arrow-fn-body-cntns-arguments-func-decl-arrow-func-declare-arguments-assign-incl-def-param-arrow-arguments.js",
     "status" : "PASS",
     "statusOverrides" : {
@@ -1980,21 +1996,21 @@
     "filePath" : "language/expressions/assignment/destructuring/obj-prop-__proto__dup.js",
     "status" : "FAIL"
   }, {
-    "filePath" : "language/expressions/async-arrow-function/await-as-param-ident-nested-arrow-parameter-position.js",
+    "filePath" : "language/expressions/assignment/target-member-computed-reference-null.js",
     "status" : "FAIL",
-    "comment" : "test262 update 2018-07-12"
+    "comment" : "new failures 2021-07-08"
   }, {
-    "filePath" : "language/expressions/async-arrow-function/await-as-param-nested-arrow-parameter-position.js",
+    "filePath" : "language/expressions/assignment/target-member-computed-reference-undefined.js",
     "status" : "FAIL",
-    "comment" : "test262 update 2018-07-12"
+    "comment" : "new failures 2021-07-08"
   }, {
-    "filePath" : "language/expressions/async-arrow-function/await-as-param-rest-nested-arrow-parameter-position.js",
+    "filePath" : "language/expressions/assignment/target-super-computed-reference-null.js",
     "status" : "FAIL",
-    "comment" : "test262 update 2018-07-12"
+    "comment" : "new failures 2021-07-08"
   }, {
-    "filePath" : "language/expressions/async-arrow-function/early-errors-arrow-formals-lineterminator.js",
+    "filePath" : "language/expressions/assignment/target-super-identifier-reference-null.js",
     "status" : "FAIL",
-    "comment" : "TODO: evaluate (Test262 tests update 2017-07-10)"
+    "comment" : "new failures 2021-07-08"
   }, {
     "filePath" : "language/expressions/class/accessor-name-inst-computed-yield-expr.js",
     "status" : "FAIL",
@@ -2004,9 +2020,17 @@
     "status" : "FAIL",
     "comment" : "TODO: evaluate (Test262 tests update 2017-07-10)"
   }, {
+    "filePath" : "language/expressions/delete/super-property-null-base.js",
+    "status" : "FAIL",
+    "comment" : "new failures 2021-07-08"
+  }, {
     "filePath" : "language/expressions/dynamic-import/usage-from-eval.js",
     "status" : "FAIL",
     "comment" : "TODO: evaluate (Test262 tests update 2018-10-29)"
+  }, {
+    "filePath" : "language/module-code/top-level-await/dfs-invariant.js",
+    "status" : "FAIL",
+    "comment" : "new failures 2021-05-27"
   }, {
     "filePath" : "language/statements/class/accessor-name-inst-computed-yield-expr.js",
     "status" : "FAIL",
@@ -2015,5 +2039,9 @@
     "filePath" : "language/statements/class/accessor-name-static-computed-yield-expr.js",
     "status" : "FAIL",
     "comment" : "TODO: evaluate (Test262 tests update 2017-07-10)"
+  }, {
+    "filePath" : "language/statements/class/subclass/default-constructor-spread-override.js",
+    "status" : "FAIL",
+    "comment" : "new failures 2021-05-27"
   } ]
 }

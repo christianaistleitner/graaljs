@@ -3,11 +3,18 @@
 This changelog summarizes major changes between GraalVM versions of the GraalVM JavaScript (ECMAScript) language runtime.
 The main focus is on user-observable behavior of the engine.
 
+## Version 21.3.0
+* Implemented the [Error Cause](https://github.com/tc39/proposal-error-cause) proposal. It is available behind the experimental option `--js.error-cause`.
+
 ## Version 21.2.0
 * Graal.js now prints a warning when runtime compilation is not supported. This warning can be disabled using the '--engine.WarnInterpreterOnly=false' option or the '-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
 * Added the `js.unhandled-rejections` option to track unhandled promise rejections in a polyglot `Context`. By default, the option is set to `none`, and unhandled promise rejections are not tracked.
 * Implemented the [New Set Methods](https://github.com/tc39/proposal-set-methods) proposal. It is available behind an experimental flag (`--js.new-set-methods`).
 * Implemented experimental operator overloading support. Use the experimental option `--js.operator-overloading` to enable it and consult [the documentation](docs/user/OperatorOverloading.md).
+* Updated RegExp Match Indices proposal with opt-in using the `d` flag. Available in ECMAScript 2022 (`--js.ecmascript-version=2022`). Deprecated `--js.regexp-match-indices` option.
+* Nashorn compatibility mode now defaults to compatiblity with ECMAScript version 5, unless another version is explicitly selected.
+* `Date.prototype` built-ins use ICU (not JDK) algorithms and data (like timezone data) by now (in order to reduce inconsistencies between `Date` and `Intl.DateTimeFormat`).
+* Updated ICU4J library to version 69.1.
 
 ## Version 21.1.0
 * Updated Node.js to version 14.16.1.

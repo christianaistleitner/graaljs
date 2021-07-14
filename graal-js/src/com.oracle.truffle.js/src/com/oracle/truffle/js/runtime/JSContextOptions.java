@@ -76,10 +76,14 @@ public final class JSContextOptions {
     public static final OptionKey<Integer> ECMASCRIPT_VERSION = new OptionKey<>(JSConfig.CurrentECMAScriptVersion, new OptionType<>("ecmascript-version", new Function<String, Integer>() {
 
         @Override
-        public Integer apply(String t) {
+        public Integer apply(String in) {
+            if ("latest".equals(in)) {
+                return JSConfig.CurrentECMAScriptVersion;
+            } else if ("staging".equals(in)) {
+                return JSConfig.MaxECMAScriptVersion;
+            }
             try {
-                int version = Integer.parseInt(t);
-
+                int version = Integer.parseInt(in);
                 int minYearVersion = JSConfig.ECMAScript6 + JSConfig.ECMAScriptNumberYearDelta;
                 int maxYearVersion = JSConfig.MaxECMAScriptVersion + JSConfig.ECMAScriptNumberYearDelta;
                 if (minYearVersion <= version && version <= maxYearVersion) {
@@ -131,7 +135,7 @@ public final class JSContextOptions {
     @CompilationFinal private boolean intl402;
 
     public static final String REGEXP_MATCH_INDICES_NAME = JS_OPTION_PREFIX + "regexp-match-indices";
-    @Option(name = REGEXP_MATCH_INDICES_NAME, category = OptionCategory.USER, help = "Enable RegExp Match Indices property.") //
+    @Option(name = REGEXP_MATCH_INDICES_NAME, category = OptionCategory.USER, help = "Enable RegExp Match Indices property.", deprecated = true) //
     public static final OptionKey<Boolean> REGEXP_MATCH_INDICES = new OptionKey<>(false);
     @CompilationFinal private boolean regexpMatchIndices;
 
@@ -519,6 +523,12 @@ public final class JSContextOptions {
     public static final OptionKey<Boolean> OPERATOR_OVERLOADING = new OptionKey<>(false);
     @CompilationFinal private boolean operatorOverloading;
 
+    public static final String ERROR_CAUSE_NAME = JS_OPTION_PREFIX + "error-cause";
+    @Option(name = ERROR_CAUSE_NAME, category = OptionCategory.EXPERT, help = "" +
+                    "Enable the error cause proposal. Allows an error to be chained with a cause using the optional options parameter.") //
+    public static final OptionKey<Boolean> ERROR_CAUSE = new OptionKey<>(false);
+    @CompilationFinal private boolean errorCause;
+
     JSContextOptions(JSParserOptions parserOptions, OptionValues optionValues) {
         this.parserOptions = parserOptions;
         this.optionValues = optionValues;
@@ -546,7 +556,13 @@ public final class JSContextOptions {
     }
 
     private void cacheOptions() {
+        this.nashornCompatibilityMode = readBooleanOption(NASHORN_COMPATIBILITY_MODE);
         this.ecmascriptVersion = readIntegerOption(ECMASCRIPT_VERSION);
+        if (nashornCompatibilityMode && !ECMASCRIPT_VERSION.hasBeenSet(optionValues)) {
+            // default to ES5 in nashorn-compat mode
+            this.ecmascriptVersion = JSConfig.ECMAScript5;
+        }
+
         this.annexB = readBooleanOption(ANNEX_B);
         this.intl402 = readBooleanOption(INTL_402);
         this.regexpStaticResult = patchBooleanOption(REGEXP_STATIC_RESULT, REGEXP_STATIC_RESULT_NAME, regexpStaticResult, msg -> {
@@ -561,7 +577,6 @@ public final class JSContextOptions {
         });
         this.v8RealmBuiltin = readBooleanOption(V8_REALM_BUILTIN);
         this.v8LegacyConst = readBooleanOption(V8_LEGACY_CONST);
-        this.nashornCompatibilityMode = readBooleanOption(NASHORN_COMPATIBILITY_MODE);
         this.directByteBuffer = patchBooleanOption(DIRECT_BYTE_BUFFER, DIRECT_BYTE_BUFFER_NAME, directByteBuffer, msg -> {
             directByteBufferCyclicAssumption.invalidate(msg);
             directByteBufferCurrentAssumption = directByteBufferCyclicAssumption.getAssumption();
@@ -605,6 +620,7 @@ public final class JSContextOptions {
         this.unhandledRejectionsMode = readUnhandledRejectionsMode();
         this.newSetMethods = readBooleanOption(NEW_SET_METHODS);
         this.operatorOverloading = readBooleanOption(OPERATOR_OVERLOADING);
+        this.errorCause = readBooleanOption(ERROR_CAUSE);
 
         this.propertyCacheLimit = readIntegerOption(PROPERTY_CACHE_LIMIT);
         this.functionCacheLimit = readIntegerOption(FUNCTION_CACHE_LIMIT);
@@ -979,6 +995,10 @@ public final class JSContextOptions {
         return operatorOverloading;
     }
 
+    public boolean isErrorCauseEnabled() {
+        return errorCause;
+    }
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -1032,6 +1052,7 @@ public final class JSContextOptions {
         hash = 53 * hash + this.unhandledRejectionsMode.ordinal();
         hash = 53 * hash + (this.newSetMethods ? 1 : 0);
         hash = 53 * hash + (this.operatorOverloading ? 1 : 0);
+        hash = 53 * hash + (this.errorCause ? 1 : 0);
         return hash;
     }
 
@@ -1192,6 +1213,9 @@ public final class JSContextOptions {
             return false;
         }
         if (this.operatorOverloading != other.operatorOverloading) {
+            return false;
+        }
+        if (this.errorCause != other.errorCause) {
             return false;
         }
         return Objects.equals(this.parserOptions, other.parserOptions);

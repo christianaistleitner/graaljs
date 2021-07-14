@@ -836,7 +836,7 @@ public class PropertyGetNode extends PropertyCacheNode<PropertyGetNode.GetCacheN
 
         @Override
         protected Object getValue(Object thisObj, Object receiver, Object defaultValue, PropertyGetNode root, boolean guard) {
-            String thisStr = (String) thisObj;
+            String thisStr = JSRuntime.toStringIsString(thisObj);
             if (root.getKey() instanceof String) {
                 Object boxedString = root.getContext().getRealm().getEnv().asBoxedGuestValue(thisStr);
                 try {
@@ -1616,7 +1616,7 @@ public class PropertyGetNode extends PropertyCacheNode<PropertyGetNode.GetCacheN
     private GetCacheNode createCachedPropertyNodeNotJSObject(Property property, Object thisObj, int depth) {
         final ReceiverCheckNode receiverCheck;
         if (depth == 0) {
-            if (isMethod() && thisObj instanceof String && context.isOptionNashornCompatibilityMode()) {
+            if (isMethod() && JSRuntime.isString(thisObj) && context.isOptionNashornCompatibilityMode()) {
                 // This hack ensures we get the Java method instead of the JavaScript property
                 // for length in s.length() where s is a java.lang.String. Required by Nashorn.
                 // We do this only for depth 0, because JavaScript prototype functions in turn
@@ -1718,7 +1718,7 @@ public class PropertyGetNode extends PropertyCacheNode<PropertyGetNode.GetCacheN
             return null;
         }
         if (context.isOptionNashornCompatibilityMode() && context.getRealm().isJavaInteropEnabled()) {
-            if (thisObj instanceof String && isMethod()) {
+            if (JSRuntime.isString(thisObj) && isMethod()) {
                 return new JavaStringMethodGetNode(createPrimitiveReceiverCheck(thisObj, depth));
             }
         }
@@ -1837,5 +1837,34 @@ public class PropertyGetNode extends PropertyCacheNode<PropertyGetNode.GetCacheN
     @Override
     protected GetCacheNode createTruffleObjectPropertyNode() {
         return new ForeignPropertyGetNode(key, isMethod(), isGlobal(), context);
+    }
+
+    @Override
+    protected boolean canCombineShapeCheck(Shape parentShape, Shape cacheShape, Object thisObj, int depth, Object value, Property property) {
+        assert shapesHaveCommonLayoutForKey(parentShape, cacheShape);
+        if (JSDynamicObject.isJSDynamicObject(thisObj) && JSProperty.isData(property)) {
+            if (!JSProperty.isAccessor(property) && !JSProperty.isProxy(property)) {
+                return !property.getLocation().isFinal() && !property.getLocation().isAssumedFinal();
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected GetCacheNode createCombinedIcPropertyNode(Shape parentShape, Shape cacheShape, Object thisObj, int depth, Object value, Property property) {
+        CombinedShapeCheckNode receiverCheck = new CombinedShapeCheckNode(parentShape, cacheShape);
+
+        if (property.getLocation() instanceof IntLocation) {
+            return new IntPropertyGetNode(property, receiverCheck);
+        } else if (property.getLocation() instanceof DoubleLocation) {
+            return new DoublePropertyGetNode(property, receiverCheck);
+        } else if (property.getLocation() instanceof BooleanLocation) {
+            return new BooleanPropertyGetNode(property, receiverCheck);
+        } else if (property.getLocation() instanceof LongLocation) {
+            return new LongPropertyGetNode(property, receiverCheck);
+        } else {
+            assert !JSProperty.isProxy(property);
+            return new ObjectPropertyGetNode(property, receiverCheck);
+        }
     }
 }

@@ -1,3 +1,9 @@
+---
+layout: docs
+toc_group: js
+link_title: Migration Guide from Nashorn to GraalVM JavaScript
+permalink: /reference-manual/js/NashornMigrationGuide/
+---
 # Migration Guide from Nashorn to GraalVM JavaScript
 
 This guide serves as a migration guide for code previously targeted to the Nashorn engine.
@@ -29,6 +35,10 @@ This is the case for Nashorn-specific extensions that GraalVM JavaScript does no
 Note that you have to enable [experimental options](Options.md#stable-and-experimental-options) to use this flag.
 Further note that setting this flag defeats the [secure by default](#secure-by-default) approach of GraalVM JavaScript in some cases, e.g., when operating on a legacy `ScriptEngine`.
 
+When you use the Nashorn compatibility mode, by default, ECMAScript 5 is set as compatibility level.
+You can specify a different ECMAScript version using the `js.ecmascript-version` flag; note that this might conflict with full Nashorn compatibilty.
+A code example how to set the flag is given near the end of this section.
+
 The `js.nashorn-compat` option can be set:
 1&#46; by using a command line option:
 ```shell
@@ -49,7 +59,7 @@ try (Context context = Context.newBuilder().allowExperimentalOptions(true).optio
 java -Dpolyglot.js.nashorn-compat=true MyApplication
 ```
 
-Functionality only available under this flag includes:
+Functionality only available under the `nashorn-compat` flag includes:
 * `Java.isJavaFunction`, `Java.isJavaMethod`, `Java.isScriptObject`, `Java.isScriptFunction`
 * `new Interface|AbstractClass(fn|obj)`
 * `JavaImporter`
@@ -57,6 +67,13 @@ Functionality only available under this flag includes:
 * `java.lang.String` methods on string values
 * `load("nashorn:parser.js")`, `load("nashorn:mozilla_compat.js")`
 * `exit`, `quit`
+
+The `js.ecmascript-version` option can be set in similar fashion.
+As this is a supported option, there is no need to provide the `experimental-options` flag just for setting the `ecmascript-version`:
+1&#46; by using a command line option:
+```shell
+js --js.ecmascript-version=2020
+```
 
 ## Nashorn Syntax Extensions
 
@@ -71,7 +88,7 @@ GraalVM JavaScript differs from Nashorn in some aspects that were intentional de
 GraalVM JavaScript takes a _secure by default_ approach.
 Unless explicitly permitted by the embedder, JavaScript code cannot access Java classes or access the file system, among other restrictions.
 Several features of GraalVM JavaScript, including Nashorn compatibility features, are only available when the relevant security settings are permissive enough.
-Make sure you [understand the security implications](https://www.graalvm.org/docs/security-guide/) of any change that lifts the secure default limits to your application and the host system.
+Make sure you [understand the security implications](https://www.graalvm.org/security-guide/) of any change that lifts the secure default limits to your application and the host system.
 
 For a full list of available settings, see [`Context.Builder`](https://www.graalvm.org/truffle/javadoc/org/graalvm/polyglot/Context.Builder.html).
 Those flags can be defined when building the context with GraalVM Polyglot API.

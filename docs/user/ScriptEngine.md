@@ -1,3 +1,9 @@
+---
+layout: docs
+toc_group: js
+link_title: ScriptEngine Implementation
+permalink: /reference-manual/js/ScriptEngine/
+---
 # ScriptEngine Implementation
 
 GraalVM provides a JSR-223 compliant `javax.script.ScriptEngine` implementation for running JavaScript.
@@ -16,6 +22,8 @@ These options are:
 * `polyglot.js.allowHostClassLookup <boolean or Predicate<String>>`
 * `polyglot.js.allowHostClassLoading <boolean>`
 * `polyglot.js.allowAllAccess <boolean>`
+* `polyglot.js.nashorn-compat <boolean>`
+* `polyglot.js.ecmascript-version <String>`
 
 These options control the sandboxing rules applied to evaluated JavaScript code and are set to `false` by default, unless the application was started in the Nashorn compatibility mode (`--js.nashorn-compat=true`).
 

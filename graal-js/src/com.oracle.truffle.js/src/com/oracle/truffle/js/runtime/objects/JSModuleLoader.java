@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -45,5 +45,5 @@ import com.oracle.truffle.api.source.Source;
 public interface JSModuleLoader {
     JSModuleRecord resolveImportedModule(ScriptOrModule referencingModule, String specifier);
 
-    JSModuleRecord loadModule(Source moduleSource);
+    JSModuleRecord loadModule(Source moduleSource, JSModuleData moduleData);
 }
